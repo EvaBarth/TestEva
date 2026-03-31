@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TranslateHub – Übersetzungsdienst</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="navbar">
+    <div class="nav-brand" onclick="showScreen('home')">
+      <span class="logo-icon">🌐</span>
+      <span class="logo-text">TranslateHub</span>
+    </div>
+    <div class="nav-links">
+      <a onclick="showScreen('home')" class="nav-link active" id="nav-home">Start</a>
+      <a onclick="showScreen('translate')" class="nav-link" id="nav-translate">Übersetzen</a>
+      <a onclick="showScreen('history')" class="nav-link" id="nav-history">Verlauf</a>
+      <a onclick="showScreen('settings')" class="nav-link" id="nav-settings">Einstellungen</a>
+    </div>
+    <div class="nav-user" onclick="showScreen('profile')">
+      <div class="avatar">JD</div>
+      <span class="user-name">Jana Doe</span>
+    </div>
+  </nav>
+
+  <!-- ===== SCREEN: HOME ===== -->
+  <div id="screen-home" class="screen active">
+    <section class="hero">
+      <h1>Professionelle Übersetzungen</h1>
+      <p class="hero-sub">Schnell, präzise und in über 50 Sprachen – menschlich oder KI-gestützt.</p>
+      <button class="btn btn-primary btn-large" onclick="showScreen('translate')">
+        Jetzt übersetzen
+      </button>
+    </section>
+
+    <section class="features">
+      <div class="feature-card" onclick="showScreen('translate')">
+        <div class="feature-icon">⚡</div>
+        <h3>Sofortübersetzung</h3>
+        <p>KI übersetzt Ihren Text in Sekunden in jede beliebige Sprache.</p>
+      </div>
+      <div class="feature-card" onclick="showModal('modal-human')">
+        <div class="feature-icon">👤</div>
+        <h3>Menschliche Übersetzer</h3>
+        <p>Zertifizierte Fachübersetzer für sensible oder komplexe Dokumente.</p>
+      </div>
+      <div class="feature-card" onclick="showModal('modal-file')">
+        <div class="feature-icon">📄</div>
+        <h3>Dokument-Upload</h3>
+        <p>PDF, Word und mehr – wir übersetzen ganze Dateien mit einem Klick.</p>
+      </div>
+      <div class="feature-card" onclick="showScreen('history')">
+        <div class="feature-icon">📋</div>
+        <h3>Übersetzungsverlauf</h3>
+        <p>Alle vergangenen Übersetzungen jederzeit abrufbar und exportierbar.</p>
+      </div>
+    </section>
+
+    <section class="stats-bar">
+      <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Sprachen</span></div>
+      <div class="stat"><span class="stat-num">1 Mio.</span><span class="stat-label">Übersetzungen</span></div>
+      <div class="stat"><span class="stat-num">99,2%</span><span class="stat-label">Kundenzufriedenheit</span></div>
+      <div class="stat"><span class="stat-num">24/7</span><span class="stat-label">Verfügbarkeit</span></div>
+    </section>
+  </div>
+
+  <!-- ===== SCREEN: TRANSLATE ===== -->
+  <div id="screen-translate" class="screen">
+    <div class="translate-container">
+      <h2 class="page-title">Übersetzen</h2>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('text', this)">Text</button>
+        <button class="mode-tab" onclick="setMode('file', this)">Datei</button>
+        <button class="mode-tab" onclick="setMode('website', this)">Website</button>
+      </div>
+
+      <!-- Text Mode -->
+      <div id="mode-text" class="mode-panel">
+        <div class="lang-bar">
+          <div class="lang-select-wrap">
+            <label>Ausgangssprache</label>
+            <select id="src-lang" class="lang-select">
+              <option value="auto">Automatisch erkennen</option>
+              <option value="de">Deutsch</option>
+              <option value="en">Englisch</option>
+              <option value="fr">Französisch</option>
+              <option value="es">Spanisch</option>
+              <option value="it">Italienisch</option>
+              <option value="pt">Portugiesisch</option>
+              <option value="nl">Niederländisch</option>
+              <option value="pl">Polnisch</option>
+              <option value="ru">Russisch</option>
+              <option value="zh">Chinesisch</option>
+              <option value="ja">Japanisch</option>
+              <option value="ar">Arabisch</option>
+            </select>
+          </div>
+          <button class="swap-btn" onclick="swapLanguages()" title="Sprachen tauschen">⇄</button>
+          <div class="lang-select-wrap">
+            <label>Zielsprache</label>
+            <select id="tgt-lang" class="lang-select">
+              <option value="en">Englisch</option>
+              <option value="de">Deutsch</option>
+              <option value="fr">Französisch</option>
+              <option value="es">Spanisch</option>
+              <option value="it">Italienisch</option>
+              <option value="pt">Portugiesisch</option>
+              <option value="nl">Niederländisch</option>
+              <option value="pl">Polnisch</option>
+              <option value="ru">Russisch</option>
+              <option value="zh">Chinesisch</option>
+              <option value="ja">Japanisch</option>
+              <option value="ar">Arabisch</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="editor-grid">
+          <div class="editor-panel">
+            <textarea id="source-text" placeholder="Text hier eingeben..." oninput="updateCharCount()"></textarea>
+            <div class="editor-footer">
+              <span id="char-count">0 / 5000 Zeichen</span>
+              <button class="icon-btn" onclick="clearSource()" title="Löschen">✕</button>
+            </div>
+          </div>
+          <div class="editor-panel result-panel">
+            <div id="result-text" class="result-text placeholder">Übersetzung erscheint hier...</div>
+            <div class="editor-footer">
+              <span id="detect-label"></span>
+              <div class="result-actions">
+                <button class="icon-btn" onclick="copyResult()" title="Kopieren">📋</button>
+                <button class="icon-btn" onclick="speakResult()" title="Vorlesen">🔊</button>
+                <button class="icon-btn" onclick="saveToHistory()" title="Speichern">💾</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="translate-actions">
+          <div class="quality-toggle">
+            <label class="toggle-label">
+              <input type="checkbox" id="quality-check" />
+              <span>Qualitätsprüfung</span>
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" id="formal-check" />
+              <span>Formell</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" onclick="translateText()">Übersetzen</button>
+        </div>
+      </div>
+
+      <!-- File Mode -->
+      <div id="mode-file" class="mode-panel hidden">
+        <div class="upload-zone" onclick="showModal('modal-file')" id="upload-zone">
+          <div class="upload-icon">📂</div>
+          <p class="upload-title">Datei hier ablegen oder klicken</p>
+          <p class="upload-sub">Unterstützte Formate: PDF, DOCX, PPTX, TXT (max. 50 MB)</p>
+          <button class="btn btn-secondary">Datei auswählen</button>
+        </div>
+      </div>
+
+      <!-- Website Mode -->
+      <div id="mode-website" class="mode-panel hidden">
+        <div class="url-input-wrap">
+          <input type="url" id="url-input" placeholder="https://beispiel.de/seite" class="url-input" />
+          <button class="btn btn-primary" onclick="showToast('Website-Übersetzung gestartet...')">Übersetzen</button>
+        </div>
+        <p class="url-hint">Die komplette Website wird in der Zielsprache angezeigt.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: HISTORY ===== -->
+  <div id="screen-history" class="screen">
+    <div class="page-container">
+      <div class="page-header">
+        <h2 class="page-title">Übersetzungsverlauf</h2>
+        <div class="header-actions">
+          <input type="search" placeholder="Suchen..." class="search-input" oninput="filterHistory(this.value)" />
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Verlauf exportiert (CSV)')">Exportieren</button>
+        </div>
+      </div>
+
+      <div class="filter-chips">
+        <button class="chip active" onclick="setHistoryFilter('all', this)">Alle</button>
+        <button class="chip" onclick="setHistoryFilter('text', this)">Text</button>
+        <button class="chip" onclick="setHistoryFilter('file', this)">Dateien</button>
+        <button class="chip" onclick="setHistoryFilter('human', this)">Menschlich</button>
+      </div>
+
+      <div id="history-list" class="history-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: SETTINGS ===== -->
+  <div id="screen-settings" class="screen">
+    <div class="page-container">
+      <h2 class="page-title">Einstellungen</h2>
+
+      <div class="settings-group">
+        <h3>Sprache & Region</h3>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Standard-Ausgangssprache</span>
+            <span class="setting-desc">Wird beim Start vorausgewählt</span>
+          </div>
+          <select class="setting-control">
+            <option>Automatisch erkennen</option>
+            <option>Deutsch</option>
+            <option>Englisch</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Standard-Zielsprache</span>
+          </div>
+          <select class="setting-control">
+            <option>Englisch</option>
+            <option>Deutsch</option>
+            <option>Französisch</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Darstellung</h3>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Dunkelmodus</span>
+            <span class="setting-desc">Dunkles Farbschema aktivieren</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle" onchange="toggleDarkMode()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Schriftgröße</span>
+          </div>
+          <select class="setting-control">
+            <option>Normal</option>
+            <option>Groß</option>
+            <option>Sehr groß</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Benachrichtigungen</h3>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">E-Mail bei fertigem Auftrag</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Push-Benachrichtigungen</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Datenschutz</h3>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Verlauf speichern</span>
+            <span class="setting-desc">Übersetzungen lokal speichern</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <span class="setting-name">Trainingsdaten freigeben</span>
+            <span class="setting-desc">Hilft, die KI zu verbessern</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="showToast('Einstellungen gespeichert')">Speichern</button>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: PROFILE ===== -->
+  <div id="screen-profile" class="screen">
+    <div class="page-container">
+      <h2 class="page-title">Mein Profil</h2>
+
+      <div class="profile-card">
+        <div class="profile-avatar">JD</div>
+        <div class="profile-info">
+          <h3>Jana Doe</h3>
+          <p>jana.doe@beispiel.de</p>
+          <span class="plan-badge">Pro-Plan</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Profilbild geändert')">Bearbeiten</button>
+      </div>
+
+      <div class="settings-group">
+        <h3>Kontoinformationen</h3>
+        <div class="setting-row">
+          <span class="setting-name">Name</span>
+          <input type="text" value="Jana Doe" class="setting-input" />
+        </div>
+        <div class="setting-row">
+          <span class="setting-name">E-Mail</span>
+          <input type="email" value="jana.doe@beispiel.de" class="setting-input" />
+        </div>
+        <div class="setting-row">
+          <span class="setting-name">Passwort</span>
+          <button class="btn btn-secondary btn-sm" onclick="showModal('modal-password')">Ändern</button>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Nutzung diesen Monat</h3>
+        <div class="usage-bar-wrap">
+          <div class="usage-label"><span>Zeichen</span><span>38.200 / 100.000</span></div>
+          <div class="usage-bar"><div class="usage-fill" style="width:38%"></div></div>
+        </div>
+        <div class="usage-bar-wrap">
+          <div class="usage-label"><span>Dokumente</span><span>4 / 20</span></div>
+          <div class="usage-bar"><div class="usage-fill" style="width:20%"></div></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="showToast('Änderungen gespeichert')">Speichern</button>
+        <button class="btn btn-danger" onclick="showModal('modal-logout')">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Human Translator ===== -->
+  <div id="modal-human" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modal-human')">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Menschlicher Übersetzer</h3>
+        <button class="modal-close" onclick="closeModal('modal-human')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Wählen Sie Ihr Sprachpaar und beschreiben Sie den Auftrag:</p>
+        <div class="form-row">
+          <select class="form-control">
+            <option>Deutsch → Englisch</option>
+            <option>Englisch → Deutsch</option>
+            <option>Deutsch → Französisch</option>
+            <option>Englisch → Spanisch</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <select class="form-control">
+            <option>Allgemein</option>
+            <option>Juristisch</option>
+            <option>Medizinisch</option>
+            <option>Technisch</option>
+            <option>Marketing</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <textarea class="form-control" rows="4" placeholder="Beschreibung des Auftrags / besondere Anforderungen..."></textarea>
+        </div>
+        <div class="price-estimate">
+          <span>Geschätzte Kosten:</span>
+          <strong>ab € 0,12 / Wort</strong>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-human')">Abbrechen</button>
+        <button class="btn btn-primary" onclick="submitOrder()">Auftrag anfragen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: File Upload ===== -->
+  <div id="modal-file" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modal-file')">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Dokument hochladen</h3>
+        <button class="modal-close" onclick="closeModal('modal-file')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-zone-modal">
+          <div class="upload-icon">📂</div>
+          <p>Datei auswählen oder hier ablegen</p>
+          <p class="upload-sub">PDF, DOCX, PPTX, TXT – max. 50 MB</p>
+        </div>
+        <div class="form-row simulated-file">
+          <span class="file-chip">📄 Vertrag_Final.pdf <button onclick="removeFile(this)">✕</button></span>
+        </div>
+        <div class="form-row">
+          <label>Zielsprache</label>
+          <select class="form-control">
+            <option>Englisch</option>
+            <option>Französisch</option>
+            <option>Spanisch</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-file')">Abbrechen</button>
+        <button class="btn btn-primary" onclick="startFileTranslation()">Übersetzung starten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Logout ===== -->
+  <div id="modal-logout" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modal-logout')">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Abmelden</h3>
+        <button class="modal-close" onclick="closeModal('modal-logout')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Möchten Sie sich wirklich abmelden?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-logout')">Abbrechen</button>
+        <button class="btn btn-danger" onclick="showToast('Abgemeldet'); closeModal('modal-logout')">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: Password ===== -->
+  <div id="modal-password" class="modal-overlay hidden" onclick="closeModalOutside(event, 'modal-password')">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Passwort ändern</h3>
+        <button class="modal-close" onclick="closeModal('modal-password')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Aktuelles Passwort</label>
+          <input type="password" class="form-control" placeholder="••••••••" />
+        </div>
+        <div class="form-row">
+          <label>Neues Passwort</label>
+          <input type="password" class="form-control" placeholder="••••••••" />
+        </div>
+        <div class="form-row">
+          <label>Passwort bestätigen</label>
+          <input type="password" class="form-control" placeholder="••••••••" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-password')">Abbrechen</button>
+        <button class="btn btn-primary" onclick="showToast('Passwort geändert'); closeModal('modal-password')">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
