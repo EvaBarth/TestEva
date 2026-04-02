@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technische Dokumentation – Digitaler Bürgerassistent Einwohnermeldeamt</title>
+  <style>
+    /* ── Print / Screen base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #003087;
+      --blue-mid:  #1a56b0;
+      --blue-light:#dce8f5;
+      --gold:      #c8a415;
+      --text:      #1a1a1a;
+      --muted:     #5a6475;
+      --border:    #c8d0de;
+      --surface:   #f5f7fb;
+      --white:     #ffffff;
+    }
+
+    body {
+      font-family: Calibri, "Segoe UI", Arial, sans-serif;
+      font-size: 11pt;
+      color: var(--text);
+      background: #e0e4ec;
+      line-height: 1.6;
+    }
+
+    /* ── Page wrapper ── */
+    .page {
+      background: var(--white);
+      max-width: 210mm;
+      margin: 24px auto;
+      padding: 25mm 22mm 22mm 25mm;
+      box-shadow: 0 4px 24px rgba(0,0,0,.18);
+      position: relative;
+    }
+
+    /* ── Cover page ── */
+    .cover {
+      min-height: 257mm;
+      display: flex;
+      flex-direction: column;
+      page-break-after: always;
+    }
+    .cover-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 18px;
+      border-bottom: 3px solid var(--blue);
+      margin-bottom: 80px;
+    }
+    .cover-emblem {
+      width: 52px; height: 52px;
+      background: var(--blue);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+    .cover-org { font-size: 13pt; font-weight: 700; color: var(--blue); }
+    .cover-org-sub { font-size: 9pt; color: var(--muted); }
+
+    .cover-title-block { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .cover-label {
+      font-size: 9pt; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 2px; margin-bottom: 18px;
+    }
+    .cover-h1 {
+      font-size: 26pt; font-weight: 700; color: var(--blue);
+      line-height: 1.2; margin-bottom: 12px;
+    }
+    .cover-h2 {
+      font-size: 16pt; color: var(--blue-mid);
+      font-weight: 400; margin-bottom: 32px;
+    }
+    .cover-rule { height: 4px; background: var(--blue); width: 80px; margin-bottom: 32px; }
+    .cover-meta {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px;
+      font-size: 10pt;
+    }
+    .cover-meta-key { color: var(--muted); }
+    .cover-meta-val { font-weight: 600; color: var(--text); }
+
+    .cover-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 8.5pt; color: var(--muted);
+      display: flex; justify-content: space-between;
+    }
+
+    /* ── TOC page ── */
+    .toc-page { page-break-after: always; }
+    .toc-title {
+      font-size: 14pt; font-weight: 700; color: var(--blue);
+      margin-bottom: 24px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--blue);
+    }
+    .toc-entry {
+      display: flex; align-items: baseline; gap: 4px;
+      padding: 4px 0;
+      font-size: 10.5pt;
+    }
+    .toc-entry a { color: var(--text); text-decoration: none; flex-shrink: 0; }
+    .toc-entry a:hover { color: var(--blue); text-decoration: underline; }
+    .toc-entry.h2 { padding-left: 20px; font-size: 10pt; }
+    .toc-entry.h3 { padding-left: 40px; font-size: 9.5pt; color: var(--muted); }
+    .toc-dots {
+      flex: 1; border-bottom: 1px dotted var(--border);
+      margin: 0 6px; position: relative; top: -3px;
+    }
+    .toc-page-num { color: var(--muted); font-size: 9.5pt; flex-shrink: 0; }
+
+    /* ── Content pages ── */
+    .content-page { page-break-before: always; }
+
+    /* Running header */
+    .running-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+      font-size: 8.5pt; color: var(--muted);
+    }
+    .running-header strong { color: var(--blue); }
+
+    /* Running footer */
+    .running-footer {
+      margin-top: 40px; padding-top: 8px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between;
+      font-size: 8.5pt; color: var(--muted);
+    }
+
+    /* ── Headings ── */
+    h1 {
+      font-size: 18pt; font-weight: 700; color: var(--blue);
+      margin: 0 0 20px 0; padding-bottom: 8px;
+      border-bottom: 2px solid var(--blue);
+      page-break-after: avoid;
+    }
+    h2 {
+      font-size: 13pt; font-weight: 700; color: var(--blue);
+      margin: 28px 0 10px 0;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 11pt; font-weight: 700; color: var(--blue-mid);
+      margin: 20px 0 8px 0;
+      page-break-after: avoid;
+    }
+
+    /* ── Body text ── */
+    p { margin-bottom: 8px; }
+    ul, ol { padding-left: 22px; margin-bottom: 10px; }
+    li { margin-bottom: 4px; }
+    strong { font-weight: 700; }
+    code {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 9pt;
+      background: #eef2f8;
+      border: 1px solid #d0d8e8;
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+    pre {
+      background: #eef2f8;
+      border: 1px solid #d0d8e8;
+      border-left: 3px solid var(--blue-mid);
+      border-radius: 4px;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 9pt;
+      overflow-x: auto;
+    }
+
+    /* ── Info box ── */
+    .info-box {
+      background: var(--blue-light);
+      border-left: 4px solid var(--blue);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      margin: 14px 0;
+      font-size: 10.5pt;
+    }
+    .info-box strong { color: var(--blue); }
+
+    /* ── Tables ── */
+    table {
+      width: 100%; border-collapse: collapse;
+      margin: 12px 0 18px 0;
+      font-size: 10pt;
+      page-break-inside: avoid;
+    }
+    thead tr { background: var(--blue); color: var(--white); }
+    thead th {
+      padding: 8px 12px; text-align: left;
+      font-weight: 700; font-size: 9.5pt;
+    }
+    tbody tr:nth-child(even) { background: var(--blue-light); }
+    tbody tr:nth-child(odd)  { background: var(--white); }
+    tbody td { padding: 7px 12px; border-bottom: 1px solid var(--border); }
+
+    /* ── Numbered section labels ── */
+    .section-num {
+      display: inline-block;
+      background: var(--blue);
+      color: var(--white);
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 9pt;
+      font-weight: 700;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── Dataflow diagram ── */
+    .flow {
+      display: flex; flex-direction: column; gap: 0;
+      margin: 16px 0;
+    }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 8px 12px;
+      background: var(--blue-light);
+      border-left: 3px solid var(--blue);
+      margin-bottom: 2px;
+      font-size: 10pt;
+    }
+    .flow-step-num {
+      background: var(--blue); color: var(--white);
+      width: 22px; height: 22px; min-width: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9pt; font-weight: 700;
+    }
+
+    /* ── Warning box ── */
+    .warn-box {
+      background: #fff8e1;
+      border-left: 4px solid var(--gold);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      margin: 14px 0;
+      font-size: 10.5pt;
+    }
+
+    /* ── Print overrides ── */
+    @media print {
+      body { background: white; font-size: 10.5pt; }
+      .page { margin: 0; padding: 20mm 18mm 18mm 22mm; box-shadow: none; max-width: none; }
+      .cover { min-height: 247mm; }
+      a { color: inherit; text-decoration: none; }
+      .print-hint { display: none; }
+    }
+
+    /* ── Print hint bar ── */
+    .print-hint {
+      background: var(--blue);
+      color: var(--white);
+      text-align: center;
+      padding: 10px;
+      font-size: 9.5pt;
+      position: sticky; top: 0; z-index: 10;
+    }
+    .print-hint a {
+      color: #a8d0ff; text-decoration: underline; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="print-hint">
+  📄 Zum Speichern als PDF: <a onclick="window.print()">Drucken → Als PDF speichern</a> &nbsp;|&nbsp;
+  Empfehlung: DIN A4, Ränder „Standard", Hintergrundgrafiken aktivieren
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     DECKBLATT
+     ══════════════════════════════════════════════════════════ -->
+<div class="page cover">
+  <div class="cover-header">
+    <div class="cover-emblem">🏛️</div>
+    <div>
+      <div class="cover-org">Einwohnermeldeamt</div>
+      <div class="cover-org-sub">Digitale Verwaltungsanwendungen</div>
+    </div>
+  </div>
+
+  <div class="cover-title-block">
+    <div class="cover-label">Technische Dokumentation</div>
+    <div class="cover-h1">Digitaler Bürgerassistent</div>
+    <div class="cover-h2">Einwohnermeldeamt — Chatbot-Webanwendung</div>
+    <div class="cover-rule"></div>
+    <div class="cover-meta">
+      <span class="cover-meta-key">Version</span>
+      <span class="cover-meta-val">1.0</span>
+      <span class="cover-meta-key">Stand</span>
+      <span class="cover-meta-val">April 2026</span>
+      <span class="cover-meta-key">Dokumenttyp</span>
+      <span class="cover-meta-val">Technische Systemdokumentation</span>
+      <span class="cover-meta-key">Klassifizierung</span>
+      <span class="cover-meta-val">Intern</span>
+      <span class="cover-meta-key">Dateiname</span>
+      <span class="cover-meta-val">einwohnermeldeamt-chatbot.html</span>
+      <span class="cover-meta-key">Plattform</span>
+      <span class="cover-meta-val">Browser-basiert (SPA)</span>
+    </div>
+  </div>
+
+  <div class="cover-footer">
+    <span>Einwohnermeldeamt – Digitale Verwaltungsanwendungen</span>
+    <span>Vertraulich – nur für den internen Gebrauch</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     INHALTSVERZEICHNIS
+     ══════════════════════════════════════════════════════════ -->
+<div class="page toc-page">
+  <div class="running-header">
+    <strong>Einwohnermeldeamt</strong> — Digitaler Bürgerassistent
+    <span>Technische Dokumentation v1.0</span>
+  </div>
+
+  <div class="toc-title">Inhaltsverzeichnis</div>
+
+  <div class="toc-entry h1"><a href="#s1">1&nbsp;&nbsp;Systemübersicht</a><span class="toc-dots"></span><span class="toc-page-num">3</span></div>
+  <div class="toc-entry h1"><a href="#s2">2&nbsp;&nbsp;Technische Architektur</a><span class="toc-dots"></span><span class="toc-page-num">3</span></div>
+  <div class="toc-entry h2"><a href="#s2-1">2.1&nbsp;&nbsp;Technologie-Stack</a><span class="toc-dots"></span><span class="toc-page-num">3</span></div>
+  <div class="toc-entry h2"><a href="#s2-2">2.2&nbsp;&nbsp;Architekturprinzip</a><span class="toc-dots"></span><span class="toc-page-num">4</span></div>
+  <div class="toc-entry h2"><a href="#s2-3">2.3&nbsp;&nbsp;Datenfluss</a><span class="toc-dots"></span><span class="toc-page-num">4</span></div>
+  <div class="toc-entry h1"><a href="#s3">3&nbsp;&nbsp;Benutzeroberfläche</a><span class="toc-dots"></span><span class="toc-page-num">4</span></div>
+  <div class="toc-entry h2"><a href="#s3-1">3.1&nbsp;&nbsp;Komponenten</a><span class="toc-dots"></span><span class="toc-page-num">4</span></div>
+  <div class="toc-entry h2"><a href="#s3-2">3.2&nbsp;&nbsp;Design-System</a><span class="toc-dots"></span><span class="toc-page-num">5</span></div>
+  <div class="toc-entry h1"><a href="#s4">4&nbsp;&nbsp;KI-Konfiguration</a><span class="toc-dots"></span><span class="toc-page-num">6</span></div>
+  <div class="toc-entry h2"><a href="#s4-1">4.1&nbsp;&nbsp;Modell</a><span class="toc-dots"></span><span class="toc-page-num">6</span></div>
+  <div class="toc-entry h2"><a href="#s4-2">4.2&nbsp;&nbsp;System-Prompt (Fachgebiete)</a><span class="toc-dots"></span><span class="toc-page-num">6</span></div>
+  <div class="toc-entry h2"><a href="#s4-3">4.3&nbsp;&nbsp;Gesprächsverlauf</a><span class="toc-dots"></span><span class="toc-page-num">7</span></div>
+  <div class="toc-entry h1"><a href="#s5">5&nbsp;&nbsp;Sicherheit und Datenschutz</a><span class="toc-dots"></span><span class="toc-page-num">7</span></div>
+  <div class="toc-entry h1"><a href="#s6">6&nbsp;&nbsp;Markdown-Renderer</a><span class="toc-dots"></span><span class="toc-page-num">8</span></div>
+  <div class="toc-entry h1"><a href="#s7">7&nbsp;&nbsp;Fehlerbehandlung</a><span class="toc-dots"></span><span class="toc-page-num">8</span></div>
+  <div class="toc-entry h1"><a href="#s8">8&nbsp;&nbsp;Systemvoraussetzungen</a><span class="toc-dots"></span><span class="toc-page-num">9</span></div>
+  <div class="toc-entry h1"><a href="#s9">9&nbsp;&nbsp;Inbetriebnahme</a><span class="toc-dots"></span><span class="toc-page-num">9</span></div>
+  <div class="toc-entry h1"><a href="#s10">10&nbsp;&nbsp;Projektdateien</a><span class="toc-dots"></span><span class="toc-page-num">10</span></div>
+  <div class="toc-entry h1"><a href="#s11">11&nbsp;&nbsp;Erweiterungsmöglichkeiten</a><span class="toc-dots"></span><span class="toc-page-num">10</span></div>
+  <div class="toc-entry h1"><a href="#s12">12&nbsp;&nbsp;Rechtliche Hinweise</a><span class="toc-dots"></span><span class="toc-page-num">11</span></div>
+
+  <div class="running-footer">
+    <span>Einwohnermeldeamt – Digitale Verwaltungsanwendungen</span>
+    <span>Seite 2</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     KAPITEL 1–4
+     ══════════════════════════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="running-header">
+    <strong>Einwohnermeldeamt</strong> — Digitaler Bürgerassistent
+    <span>Technische Dokumentation v1.0</span>
+  </div>
+
+  <!-- 1 -->
+  <h1 id="s1"><span class="section-num">1</span> Systemübersicht</h1>
+
+  <table>
+    <thead><tr><th>Attribut</th><th>Wert</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Produktname</strong></td><td>Digitaler Bürgerassistent – Einwohnermeldeamt</td></tr>
+      <tr><td><strong>Dateityp</strong></td><td>Eigenständige HTML-Webanwendung (Single-Page Application)</td></tr>
+      <tr><td><strong>Dateiname</strong></td><td><code>einwohnermeldeamt-chatbot.html</code></td></tr>
+      <tr><td><strong>Sprache</strong></td><td>Deutsch</td></tr>
+      <tr><td><strong>Zielgruppe</strong></td><td>Bürgerinnen und Bürger mit Fragen zum deutschen Meldewesen</td></tr>
+      <tr><td><strong>Version</strong></td><td>1.0</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    Die Anwendung ist ein KI-gestützter Chatbot für das Einwohnermeldeamt, der Bürgerinnen und
+    Bürgern bei Fragen rund um das Meldewesen hilft. Sie läuft vollständig im Browser, benötigt
+    keine Serverinstallation und kommuniziert direkt mit der Anthropic Claude API.
+  </p>
+
+  <!-- 2 -->
+  <h1 id="s2"><span class="section-num">2</span> Technische Architektur</h1>
+
+  <h2 id="s2-1">2.1 Technologie-Stack</h2>
+
+  <table>
+    <thead><tr><th>Komponente</th><th>Technologie</th><th>Details</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>HTML5 / CSS3 / JavaScript (ES2020+)</td><td>Keine externen Frameworks</td></tr>
+      <tr><td>KI-Backend</td><td>Anthropic Claude API</td><td>Modell: <code>claude-opus-4-6</code></td></tr>
+      <tr><td>Kommunikation</td><td>Fetch API mit Server-Sent Events (SSE)</td><td>Streaming-Modus aktiv</td></tr>
+      <tr><td>Hosting</td><td>Statische Datei</td><td>Kein Webserver erforderlich</td></tr>
+      <tr><td>Abhängigkeiten</td><td>Keine</td><td>Zero-Dependency-Architektur</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s2-2">2.2 Architekturprinzip</h2>
+  <p>
+    Die Anwendung folgt dem Prinzip einer <strong>Zero-Dependency Single-Page Application</strong>:
+    Der gesamte Quellcode (HTML, CSS, JavaScript) ist in einer einzigen Datei zusammengefasst.
+    Es werden keine externen Bibliotheken, Frameworks oder CDN-Ressourcen geladen. Die Kommunikation
+    mit der KI erfolgt direkt vom Browser aus über die Anthropic REST API.
+  </p>
+
+  <h2 id="s2-3">2.3 Datenfluss</h2>
+
+  <div class="flow">
+    <div class="flow-step"><div class="flow-step-num">1</div><div>Nutzer gibt Text ein oder wählt einen Themen-Chip</div></div>
+    <div class="flow-step"><div class="flow-step-num">2</div><div>Nachricht wird dem lokalen Gesprächsverlauf (<code>history[]</code>) hinzugefügt</div></div>
+    <div class="flow-step"><div class="flow-step-num">3</div><div>POST-Anfrage an <code>https://api.anthropic.com/v1/messages</code> mit <code>stream: true</code></div></div>
+    <div class="flow-step"><div class="flow-step-num">4</div><div>Server-Sent Events werden zeilenweise gelesen und dekodiert</div></div>
+    <div class="flow-step"><div class="flow-step-num">5</div><div>Antworttext wird live in der Chat-Oberfläche dargestellt (Streaming-Cursor ▌)</div></div>
+    <div class="flow-step"><div class="flow-step-num">6</div><div>Vollständige Antwort wird dem Gesprächsverlauf hinzugefügt</div></div>
+  </div>
+
+  <!-- 3 -->
+  <h1 id="s3"><span class="section-num">3</span> Benutzeroberfläche</h1>
+
+  <h2 id="s3-1">3.1 Komponenten</h2>
+
+  <h3>Header-Leiste</h3>
+  <ul>
+    <li>Behördenemblem (goldenes Rundsymbol mit 🏛️)</li>
+    <li>Titel <em>„Einwohnermeldeamt"</em> mit Untertitel <em>„Digitaler Bürgerassistent"</em></li>
+    <li>Status-Indikator: grüner Punkt = aktiv, roter Punkt = offline</li>
+  </ul>
+
+  <h3>API-Schlüssel-Dialog (Startbildschirm)</h3>
+  <ul>
+    <li>Modal-Overlay mit Blur-Effekt beim ersten Aufruf</li>
+    <li>Passwort-Eingabefeld für den Anthropic API-Schlüssel</li>
+    <li>Clientseitige Validierung: Schlüssel muss mit <code>sk-</code> beginnen</li>
+    <li>Schlüssel wird ausschließlich im Arbeitsspeicher gehalten (keine Persistenz)</li>
+  </ul>
+
+  <h3>Themen-Chips (Schnellzugriff)</h3>
+  <p>8 vordefinierte Schaltflächen für häufige Anfragen:</p>
+  <table>
+    <thead><tr><th>Chip-Beschriftung</th><th>Vorbelegte Anfrage</th></tr></thead>
+    <tbody>
+      <tr><td>📋 Anmeldung</td><td>„Wie melde ich mich an?"</td></tr>
+      <tr><td>📦 Ummeldung</td><td>„Was brauche ich zur Ummeldung?"</td></tr>
+      <tr><td>✈️ Abmeldung</td><td>„Wie funktioniert die Abmeldung ins Ausland?"</td></tr>
+      <tr><td>📄 Unterlagen</td><td>„Welche Dokumente brauche ich für die Anmeldung?"</td></tr>
+      <tr><td>📅 Terminvereinbarung</td><td>„Wie kann ich einen Termin vereinbaren?"</td></tr>
+      <tr><td>💶 Gebühren</td><td>„Welche Gebühren fallen an?"</td></tr>
+      <tr><td>📃 Meldebescheinigung</td><td>„Wie beantrage ich eine Meldebescheinigung?"</td></tr>
+      <tr><td>🪪 Personalausweis</td><td>„Wie beantrage ich einen neuen Personalausweis?"</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Chat-Fenster</h3>
+  <ul>
+    <li>Scrollbarer Nachrichtenbereich mit automatischem Scroll nach unten</li>
+    <li>Blaue Blasen (rechts) für Nutzernachrichten</li>
+    <li>Hellblaue Blasen (links) für Bot-Antworten</li>
+    <li>Tipp-Indikator (drei animierte Punkte) während die KI verarbeitet</li>
+    <li>Live-Streaming-Cursor (▌) während die Antwort eintrifft</li>
+  </ul>
+
+  <h3>Eingabebereich</h3>
+  <ul>
+    <li>Automatisch wachsendes Textfeld (Höhe 44 px bis max. 140 px)</li>
+    <li>Senden per Klick oder <kbd>Enter</kbd> — Zeilenumbruch per <kbd>Shift+Enter</kbd></li>
+    <li>Senden-Schaltfläche während Verarbeitung deaktiviert (Schutz vor Doppelabsendung)</li>
+  </ul>
+
+  <h2 id="s3-2">3.2 Design-System</h2>
+
+  <table>
+    <thead><tr><th>CSS-Variable</th><th>Hex-Wert</th><th>Verwendung</th></tr></thead>
+    <tbody>
+      <tr><td><code>--blue-dark</code></td><td><code>#003087</code></td><td>Header, Nutzerblasen, Überschriften</td></tr>
+      <tr><td><code>--blue-mid</code></td><td><code>#1a56b0</code></td><td>Hover-Zustände, Sekundärelemente</td></tr>
+      <tr><td><code>--blue-light</code></td><td><code>#e8f0fc</code></td><td>Chip-Hintergrund, Bot-Blasen</td></tr>
+      <tr><td><code>--gold</code></td><td><code>#c8a415</code></td><td>Emblem-Akzent</td></tr>
+      <tr><td><code>--surface</code></td><td><code>#f5f7fb</code></td><td>Seitenhintergrund</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Schriftart:</strong> Segoe UI (Windows-Systemfont), Fallback Arial — keine Webfont-Abhängigkeit.</p>
+
+  <div class="running-footer">
+    <span>Einwohnermeldeamt – Digitale Verwaltungsanwendungen</span>
+    <span>Seite 3</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     KAPITEL 4–6
+     ══════════════════════════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="running-header">
+    <strong>Einwohnermeldeamt</strong> — Digitaler Bürgerassistent
+    <span>Technische Dokumentation v1.0</span>
+  </div>
+
+  <!-- 4 -->
+  <h1 id="s4"><span class="section-num">4</span> KI-Konfiguration</h1>
+
+  <h2 id="s4-1">4.1 Modell</h2>
+  <table>
+    <thead><tr><th>Parameter</th><th>Wert</th></tr></thead>
+    <tbody>
+      <tr><td>Modell-ID</td><td><code>claude-opus-4-6</code></td></tr>
+      <tr><td>Anbieter</td><td>Anthropic</td></tr>
+      <tr><td>Max. Token (Antwort)</td><td>2.048</td></tr>
+      <tr><td>Streaming</td><td>Aktiviert (SSE)</td></tr>
+      <tr><td>API-Version</td><td><code>2023-06-01</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s4-2">4.2 System-Prompt – Fachgebiete</h2>
+  <p>
+    Dem Modell wird bei jeder Konversation ein fester System-Prompt vorangestellt, der das
+    Fachwissen und das Verhalten des Assistenten definiert. Folgende Themengebiete sind
+    explizit konfiguriert:
+  </p>
+
+  <table>
+    <thead><tr><th>Thema</th><th>Inhalt / Kennzahlen</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Anmeldung</strong></td><td>Frist 14 Tage, Wohnungsgeberbestätigung (§ 19 BMG), erforderliche Dokumente</td></tr>
+      <tr><td><strong>Ummeldung</strong></td><td>Adressänderung innerhalb Deutschlands, gleiche Fristen und Unterlagen</td></tr>
+      <tr><td><strong>Abmeldung</strong></td><td>Ins Ausland: frühestens 1 Woche vorher / spätestens 2 Wochen nach Auszug</td></tr>
+      <tr><td><strong>Meldebescheinigung</strong></td><td>Kosten 5–12 €; einfach und erweitert (mit Familienstand)</td></tr>
+      <tr><td><strong>Personalausweis</strong></td><td>Ab 18 J.: 37 €; Beantragung und Verlängerung</td></tr>
+      <tr><td><strong>Reisepass</strong></td><td>Standardgebühr 70 €; Express-Zuschlag +32 €</td></tr>
+      <tr><td><strong>Führungszeugnis</strong></td><td>13 €; persönlich oder online via BundID beantragbar</td></tr>
+      <tr><td><strong>Nebenwohnsitz</strong></td><td>An-/Abmeldung von Zweitwohnungen; Hinweis auf Zweitwohnungsteuer</td></tr>
+      <tr><td><strong>EU-Bürger / Drittstaaten</strong></td><td>Besonderheiten, Aufenthaltstitel, abweichende Fristen</td></tr>
+      <tr><td><strong>Auskunftssperre</strong></td><td>§ 51 BMG – Eintragung bei Gefährdungslage</td></tr>
+      <tr><td><strong>Online-Dienste</strong></td><td>Onlinezugangsgesetz (OZG), Bürgerkonto, BundID</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box">
+    <strong>Hinweis:</strong> Der System-Prompt weist das Modell an, bei ortsspezifischen
+    Angaben (z. B. Öffnungszeiten, abweichende Gemeindegebühren) auf die offizielle Website
+    der jeweiligen Gemeinde zu verweisen.
+  </div>
+
+  <h2 id="s4-3">4.3 Gesprächsverlauf</h2>
+  <p>
+    Alle Nachrichten werden sitzungslokal im JavaScript-Array <code>history[]</code> gespeichert
+    und bei jeder Anfrage vollständig an die API übermittelt. Dadurch ist
+    <strong>kontextuelles Gesprächsgedächtnis</strong> innerhalb einer Browsersitzung möglich.
+    Bei Seitenneuladen wird der Verlauf gelöscht.
+  </p>
+
+  <!-- 5 -->
+  <h1 id="s5"><span class="section-num">5</span> Sicherheit und Datenschutz</h1>
+
+  <h2>5.1 API-Schlüssel-Handling</h2>
+  <ul>
+    <li>Der Schlüssel wird <strong>niemals</strong> in <code>localStorage</code>, <code>sessionStorage</code>, Cookies oder URL-Parametern gespeichert.</li>
+    <li>Speicherung ausschließlich in einer JavaScript-Variablen im flüchtigen Arbeitsspeicher.</li>
+    <li>Bei Seitenneuladen ist erneute Eingabe erforderlich.</li>
+    <li>Übertragung erfolgt ausschließlich über HTTPS an <code>api.anthropic.com</code>.</li>
+  </ul>
+
+  <h2>5.2 Gesprächsdaten</h2>
+  <ul>
+    <li>Nachrichten verlassen den Browser nur als verschlüsselte HTTPS-Anfragen an Anthropic.</li>
+    <li>Kein eigener Server — keine serverseitige Protokollierung durch die Anwendung selbst.</li>
+    <li>Anthropic verarbeitet die Daten gemäß seiner aktuellen Datenschutzrichtlinie.</li>
+  </ul>
+
+  <h2>5.3 XSS-Schutz</h2>
+  <p>
+    Nutzereingaben werden vor der Darstellung HTML-escaped
+    (<code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code> werden ersetzt).
+    Nur Bot-Antworten werden als HTML gerendert — nach kontrollierter Konvertierung
+    durch den eingebetteten Markdown-Renderer.
+  </p>
+
+  <h2>5.4 Pflichtlicher Browser-Header</h2>
+  <p>
+    Die API-Anfrage enthält den Header
+    <code>anthropic-dangerous-direct-browser-access: true</code>,
+    der von Anthropic für direkte Browser-zu-API-Kommunikation vorgeschrieben ist und
+    explizit bestätigt, dass der Aufrufer sich der Sicherheitsimplikationen bewusst ist.
+  </p>
+
+  <!-- 6 -->
+  <h1 id="s6"><span class="section-num">6</span> Markdown-Renderer</h1>
+
+  <p>
+    Die Anwendung enthält einen eigenen leichtgewichtigen Markdown-Renderer
+    (<code>formatMessage()</code>), der ohne externe Bibliotheken auskommt
+    und folgende Elemente unterstützt:
+  </p>
+
+  <table>
+    <thead><tr><th>Element</th><th>Eingabe-Syntax</th><th>HTML-Ausgabe</th></tr></thead>
+    <tbody>
+      <tr><td>Fettdruck</td><td><code>**Text**</code></td><td><code>&lt;strong&gt;Text&lt;/strong&gt;</code></td></tr>
+      <tr><td>Aufzählungsliste</td><td><code>- Element</code> oder <code>• Element</code></td><td><code>&lt;ul&gt;&lt;li&gt;…&lt;/li&gt;&lt;/ul&gt;</code></td></tr>
+      <tr><td>Nummerierte Liste</td><td><code>1. Element</code></td><td><code>&lt;ol&gt;&lt;li&gt;…&lt;/li&gt;&lt;/ol&gt;</code></td></tr>
+      <tr><td>Absatztrennung</td><td>Leerzeile</td><td><code>&lt;br&gt;</code></td></tr>
+      <tr><td>Klartext-Zeile</td><td>Sonstige Zeilen</td><td><code>&lt;p&gt;…&lt;/p&gt;</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="running-footer">
+    <span>Einwohnermeldeamt – Digitale Verwaltungsanwendungen</span>
+    <span>Seite 4</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     KAPITEL 7–12
+     ══════════════════════════════════════════════════════════ -->
+<div class="page content-page">
+  <div class="running-header">
+    <strong>Einwohnermeldeamt</strong> — Digitaler Bürgerassistent
+    <span>Technische Dokumentation v1.0</span>
+  </div>
+
+  <!-- 7 -->
+  <h1 id="s7"><span class="section-num">7</span> Fehlerbehandlung</h1>
+
+  <table>
+    <thead><tr><th>Fehlertyp</th><th>Ursache</th><th>Nutzerdarstellung</th></tr></thead>
+    <tbody>
+      <tr><td>HTTP 401</td><td>Ungültiger API-Schlüssel</td><td>Hinweis auf Seitenneustart und neue Schlüsseleingabe</td></tr>
+      <tr><td>Sonstige HTTP-Fehler</td><td>Netzwerk- oder Serverfehler</td><td>Fehlermeldung mit HTTP-Statuscode in der Chat-Blase</td></tr>
+      <tr><td>Netzwerkfehler</td><td>Keine Internetverbindung</td><td>⚠️-Meldung; Status-Indikator wechselt auf Rot</td></tr>
+      <tr><td>Ungültige Schlüsseleingabe</td><td>Schlüssel beginnt nicht mit <code>sk-</code></td><td>Rote Fehlermeldung im Eingabe-Dialog</td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    Der <code>busy</code>-Zustand verhindert parallele Anfragen. Die Senden-Schaltfläche
+    wird während der Verarbeitung deaktiviert und nach Abschluss automatisch wieder aktiviert.
+  </p>
+
+  <!-- 8 -->
+  <h1 id="s8"><span class="section-num">8</span> Systemvoraussetzungen</h1>
+
+  <h2>8.1 Betriebssystem</h2>
+  <p>Plattformunabhängig: Windows, macOS, Linux, Android, iOS.</p>
+
+  <h2>8.2 Browser-Kompatibilität</h2>
+  <table>
+    <thead><tr><th>Browser</th><th>Mindestversion</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Google Chrome</td><td>80+</td><td>✅ Empfohlen</td></tr>
+      <tr><td>Microsoft Edge</td><td>80+</td><td>✅ Empfohlen</td></tr>
+      <tr><td>Mozilla Firefox</td><td>75+</td><td>✅ Unterstützt</td></tr>
+      <tr><td>Safari</td><td>14+</td><td>✅ Unterstützt</td></tr>
+    </tbody>
+  </table>
+  <p>
+    <strong>Technische Voraussetzung:</strong> Unterstützung von Fetch API,
+    <code>ReadableStream</code> und <code>TextDecoder</code> — alle modernen Browser erfüllen diese Anforderung.
+  </p>
+
+  <h2>8.3 Netzwerk</h2>
+  <ul>
+    <li>Internetzugang erforderlich (für Anthropic API)</li>
+    <li>Ausgehende HTTPS-Verbindung zu <code>api.anthropic.com:443</code></li>
+  </ul>
+
+  <h2>8.4 API-Schlüssel</h2>
+  <p>
+    Ein gültiger Anthropic API-Schlüssel (Format: <code>sk-ant-…</code>) ist zwingend erforderlich.
+    Schlüssel können unter <strong>console.anthropic.com</strong> bezogen werden.
+  </p>
+
+  <!-- 9 -->
+  <h1 id="s9"><span class="section-num">9</span> Inbetriebnahme</h1>
+
+  <h2>9.1 Direktstart (empfohlen)</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-step-num">1</div><div>Datei <code>einwohnermeldeamt-chatbot.html</code> im Browser öffnen (Doppelklick oder Drag &amp; Drop)</div></div>
+    <div class="flow-step"><div class="flow-step-num">2</div><div>Anthropic API-Schlüssel in das Eingabefeld eingeben</div></div>
+    <div class="flow-step"><div class="flow-step-num">3</div><div>Schaltfläche <em>„Assistent starten"</em> klicken</div></div>
+    <div class="flow-step"><div class="flow-step-num">4</div><div>Der Chat-Assistent ist sofort betriebsbereit</div></div>
+  </div>
+
+  <h2>9.2 Über lokalen HTTP-Server (optional)</h2>
+  <p>Falls der Browser den direkten Dateizugriff einschränkt, kann ein lokaler Server genutzt werden:</p>
+
+  <p><strong>Python 3 (empfohlen):</strong></p>
+  <pre>python -m http.server 8080
+→ http://localhost:8080/einwohnermeldeamt-chatbot.html</pre>
+
+  <p><strong>Node.js:</strong></p>
+  <pre>npx http-server . -p 8080 --cors
+→ http://localhost:8080/einwohnermeldeamt-chatbot.html</pre>
+
+  <p>
+    Konfigurationen für beide Varianten sind in
+    <code>.claude/launch.json</code> hinterlegt.
+  </p>
+
+  <!-- 10 -->
+  <h1 id="s10"><span class="section-num">10</span> Projektdateien</h1>
+
+  <table>
+    <thead><tr><th>Dateiname</th><th>Beschreibung</th></tr></thead>
+    <tbody>
+      <tr><td><code>einwohnermeldeamt-chatbot.html</code></td><td>Hauptanwendung — HTML, CSS und JavaScript in einer Datei</td></tr>
+      <tr><td><code>.claude/launch.json</code></td><td>Dev-Server-Konfigurationen für Claude Code (Python &amp; Node)</td></tr>
+      <tr><td><code>.claude/settings.local.json</code></td><td>Lokale Berechtigungen für Claude Code</td></tr>
+      <tr><td><code>Dokumentation_Einwohnermeldeamt_Chatbot.html</code></td><td>Dieses Dokument (druckbar als PDF)</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 11 -->
+  <h1 id="s11"><span class="section-num">11</span> Erweiterungsmöglichkeiten</h1>
+
+  <p>Folgende Erweiterungen wären für eine Produktivversion empfehlenswert:</p>
+
+  <table>
+    <thead><tr><th>Maßnahme</th><th>Beschreibung</th><th>Priorität</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Backend-Proxy</strong></td><td>API-Schlüssel serverseitig verwalten — kein Schlüssel im Browser</td><td>Hoch</td></tr>
+      <tr><td><strong>Barrierefreiheit</strong></td><td>ARIA-Labels, Tastaturnavigation, Screenreader-Optimierung (WCAG 2.1 AA)</td><td>Hoch</td></tr>
+      <tr><td><strong>Wissens-Update</strong></td><td>Regelmäßige Pflege des System-Prompts bei Gesetzesänderungen (BMG)</td><td>Hoch</td></tr>
+      <tr><td><strong>Mehrsprachigkeit</strong></td><td>Englisch, Türkisch, Arabisch für nicht-deutschsprachige Bürger</td><td>Mittel</td></tr>
+      <tr><td><strong>Terminintegration</strong></td><td>Direktanbindung an kommunale Terminbuchungssysteme</td><td>Mittel</td></tr>
+      <tr><td><strong>Persistente Sitzungen</strong></td><td>Gesprächsverlauf in IndexedDB speichern (sitzungsübergreifend)</td><td>Niedrig</td></tr>
+      <tr><td><strong>Auditprotokoll</strong></td><td>Serverseitiges Logging für Qualitätssicherung und Statistik</td><td>Niedrig</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 12 -->
+  <h1 id="s12"><span class="section-num">12</span> Rechtliche Hinweise</h1>
+
+  <div class="warn-box">
+    <strong>⚠️ Haftungsausschluss:</strong> Dieser Assistent dient ausschließlich der allgemeinen
+    Bürgerinformation und ersetzt keine verbindliche Rechtsauskunft. Für rechtsverbindliche
+    Informationen wenden Sie sich an Ihr zuständiges Einwohnermeldeamt oder einen zugelassenen
+    Rechtsanwalt.
+  </div>
+
+  <p>
+    Lokale Regelungen — insbesondere Öffnungszeiten, spezifische Gebührenhöhen und kommunale
+    Sonderregelungen — können je nach Gemeinde abweichen. Der Assistent weist bei solchen
+    Anfragen automatisch auf die offizielle Gemeindewebsite hin.
+  </p>
+  <p>
+    Die Verarbeitung von Nutzerdaten (Gesprächsinhalte) durch Anthropic unterliegt den
+    Datenschutzbestimmungen von Anthropic PBC. Vor dem produktiven Einsatz in einer Behörde
+    ist eine datenschutzrechtliche Prüfung (DSGVO, BDSG) erforderlich.
+  </p>
+
+  <div class="running-footer">
+    <span>Einwohnermeldeamt – Digitale Verwaltungsanwendungen &nbsp;|&nbsp; Version 1.0 &nbsp;|&nbsp; April 2026</span>
+    <span>Seite 5</span>
+  </div>
+</div>
+
+</body>
+</html>
