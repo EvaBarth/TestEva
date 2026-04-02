@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Einwohnermeldeamt – Digitaler Assistent</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-dark:   #003087;
+      --blue-mid:    #1a56b0;
+      --blue-light:  #e8f0fc;
+      --gold:        #c8a415;
+      --text:        #1a1a1a;
+      --muted:       #5a6475;
+      --border:      #c8d0de;
+      --surface:     #f5f7fb;
+      --white:       #ffffff;
+      --bot-bg:      #eef3fb;
+      --user-bg:     #003087;
+      --user-text:   #ffffff;
+      --shadow:      0 2px 8px rgba(0,48,135,.10);
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--blue-dark);
+      color: var(--white);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 64px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    }
+    .header-emblem {
+      width: 40px; height: 40px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .header-title { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
+    .header-sub   { font-size: .75rem; color: #a8bdd8; }
+    .header-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .provider-pill {
+      background: #1a4a99;
+      border: 1px solid #3a6ab8;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: .72rem;
+      color: #a8d0ff;
+    }
+    .header-badge {
+      background: #1a4a99;
+      border: 1px solid #3a6ab8;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: .72rem;
+      color: #a8d0ff;
+      display: flex; align-items: center; gap: 6px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .header-badge:hover { background: #254f99; }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #4cde80;
+    }
+    .status-dot.offline { background: #ff4d4d; }
+
+    /* ── Provider overlay ── */
+    #api-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,20,60,.65);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+      backdrop-filter: blur(4px);
+    }
+    .api-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 36px 32px;
+      max-width: 460px; width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+    }
+    .api-card h2 { color: var(--blue-dark); margin-bottom: 8px; font-size: 1.25rem; }
+    .api-card .subtitle { color: var(--muted); font-size: .88rem; margin-bottom: 22px; line-height: 1.5; }
+
+    .form-label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--blue-dark);
+      margin-bottom: 5px;
+    }
+    .form-group { margin-bottom: 14px; }
+
+    .api-card select,
+    .api-card input {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: .93rem;
+      outline: none;
+      transition: border-color .2s;
+      background: var(--white);
+      color: var(--text);
+    }
+    .api-card select:focus,
+    .api-card input:focus { border-color: var(--blue-mid); }
+
+    .provider-tabs {
+      display: flex; gap: 6px; margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .provider-tab {
+      flex: 1; min-width: 80px;
+      padding: 8px 4px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+    }
+    .provider-tab:hover { border-color: var(--blue-mid); color: var(--blue-mid); }
+    .provider-tab.active {
+      border-color: var(--blue-dark);
+      background: var(--blue-light);
+      color: var(--blue-dark);
+    }
+
+    .provider-hint {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-top: -8px;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+    .provider-hint a { color: var(--blue-mid); }
+
+    .api-card button.primary {
+      width: 100%; padding: 11px;
+      background: var(--blue-dark); color: var(--white);
+      border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background .2s;
+      margin-top: 4px;
+    }
+    .api-card button.primary:hover { background: var(--blue-mid); }
+    .api-error {
+      color: #c0392b; font-size: .83rem;
+      margin-top: 8px; display: none;
+    }
+    .hidden { display: none !important; }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+      max-width: 900px; width: 100%; margin: 0 auto; padding: 0 12px;
+    }
+
+    /* ── Topic chips ── */
+    #chips {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 14px 4px 10px;
+      flex-shrink: 0;
+    }
+    .chip {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: .82rem;
+      color: var(--blue-dark);
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      white-space: nowrap;
+    }
+    .chip:hover {
+      background: var(--blue-light);
+      border-color: var(--blue-mid);
+    }
+
+    /* ── Chat window ── */
+    #chat {
+      flex: 1; overflow-y: auto;
+      padding: 8px 4px 12px;
+      display: flex; flex-direction: column; gap: 14px;
+      scroll-behavior: smooth;
+    }
+    #chat::-webkit-scrollbar { width: 6px; }
+    #chat::-webkit-scrollbar-thumb { background: #c0cad8; border-radius: 3px; }
+
+    /* ── Messages ── */
+    .msg { display: flex; gap: 10px; align-items: flex-end; max-width: 100%; }
+    .msg.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .bot  .avatar { background: var(--blue-dark); color: var(--white); }
+    .user .avatar { background: var(--blue-mid);  color: var(--white); }
+
+    .bubble {
+      max-width: min(72%, 580px);
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: .9rem;
+      line-height: 1.6;
+      box-shadow: var(--shadow);
+    }
+    .bot  .bubble {
+      background: var(--bot-bg);
+      border-bottom-left-radius: 4px;
+      color: var(--text);
+    }
+    .user .bubble {
+      background: var(--user-bg);
+      border-bottom-right-radius: 4px;
+      color: var(--user-text);
+    }
+    .bubble ul, .bubble ol { padding-left: 18px; margin: 6px 0; }
+    .bubble li { margin-bottom: 4px; }
+    .bubble strong { font-weight: 600; }
+    .bubble p + p { margin-top: 8px; }
+
+    /* typing dots */
+    .typing-dots span {
+      display: inline-block;
+      width: 7px; height: 7px;
+      background: var(--blue-mid);
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: bounce .9s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: .15s; }
+    .typing-dots span:nth-child(3) { animation-delay: .30s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0);  }
+      40%            { transform: translateY(-6px); }
+    }
+
+    /* ── Input bar ── */
+    #input-bar {
+      flex-shrink: 0;
+      padding: 12px 4px 16px;
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+    #user-input {
+      flex: 1; resize: none; overflow-y: auto;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: .93rem;
+      font-family: inherit;
+      max-height: 140px; min-height: 44px;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      background: var(--white);
+    }
+    #user-input:focus {
+      border-color: var(--blue-mid);
+      box-shadow: 0 0 0 3px rgba(26,86,176,.12);
+    }
+    #send-btn {
+      width: 44px; height: 44px; flex-shrink: 0;
+      background: var(--blue-dark);
+      border: none; border-radius: 12px;
+      color: var(--white); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, transform .1s;
+      font-size: 18px;
+    }
+    #send-btn:hover:not(:disabled) { background: var(--blue-mid); }
+    #send-btn:active:not(:disabled) { transform: scale(.93); }
+    #send-btn:disabled { background: #b0bac8; cursor: default; }
+
+    /* ── Info bar ── */
+    #info-bar {
+      flex-shrink: 0;
+      text-align: center;
+      font-size: .73rem;
+      color: var(--muted);
+      padding: 0 4px 10px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .bubble { max-width: 88%; font-size: .85rem; }
+      .header-title { font-size: .95rem; }
+      .provider-pill { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Provider / API Key Overlay -->
+<div id="api-overlay">
+  <div class="api-card">
+    <h2>🏛️ Bürgerassistent konfigurieren</h2>
+    <p class="subtitle">Wählen Sie Ihren KI-Anbieter. Der API-Schlüssel wird nur für diese Sitzung im Arbeitsspeicher gehalten.</p>
+
+    <!-- Provider tabs -->
+    <div class="provider-tabs">
+      <button class="provider-tab active" data-provider="anthropic">Anthropic</button>
+      <button class="provider-tab" data-provider="openai">OpenAI</button>
+      <button class="provider-tab" data-provider="mistral">Mistral</button>
+      <button class="provider-tab" data-provider="ollama">Ollama</button>
+    </div>
+
+    <!-- Anthropic -->
+    <div class="provider-fields" id="fields-anthropic">
+      <p class="provider-hint">Cloud-Dienst · API-Schlüssel beginnt mit <code>sk-ant-</code></p>
+      <div class="form-group">
+        <label class="form-label">Modell</label>
+        <select id="model-anthropic">
+          <option value="claude-opus-4-6">Claude Opus 4.6 (leistungsstark)</option>
+          <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (ausgewogen)</option>
+          <option value="claude-haiku-4-5">Claude Haiku 4.5 (schnell)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">API-Schlüssel</label>
+        <input id="key-anthropic" type="password" placeholder="sk-ant-…" autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- OpenAI -->
+    <div class="provider-fields hidden" id="fields-openai">
+      <p class="provider-hint">Cloud-Dienst · API-Schlüssel beginnt mit <code>sk-</code></p>
+      <div class="form-group">
+        <label class="form-label">Modell</label>
+        <select id="model-openai">
+          <option value="gpt-4o">GPT-4o (leistungsstark)</option>
+          <option value="gpt-4o-mini">GPT-4o mini (schnell)</option>
+          <option value="gpt-4-turbo">GPT-4 Turbo</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">API-Schlüssel</label>
+        <input id="key-openai" type="password" placeholder="sk-…" autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- Mistral -->
+    <div class="provider-fields hidden" id="fields-mistral">
+      <p class="provider-hint">EU-Anbieter (Frankreich) · Datenlokalisierung in Europa möglich</p>
+      <div class="form-group">
+        <label class="form-label">Modell</label>
+        <select id="model-mistral">
+          <option value="mistral-large-latest">Mistral Large (leistungsstark)</option>
+          <option value="mistral-small-latest">Mistral Small (schnell)</option>
+          <option value="open-mistral-7b">Mistral 7B (kosteneffizient)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">API-Schlüssel</label>
+        <input id="key-mistral" type="password" placeholder="…" autocomplete="off" />
+      </div>
+    </div>
+
+    <!-- Ollama -->
+    <div class="provider-fields hidden" id="fields-ollama">
+      <p class="provider-hint">Vollständig lokal · Kein API-Schlüssel · Kein Internet<br>
+        Voraussetzung: <strong>Ollama</strong> muss lokal installiert und gestartet sein.</p>
+      <div class="form-group">
+        <label class="form-label">Modell</label>
+        <select id="model-ollama">
+          <option value="llama3.2">Llama 3.2 (empfohlen)</option>
+          <option value="llama3.1">Llama 3.1</option>
+          <option value="mistral">Mistral 7B</option>
+          <option value="phi4">Phi-4 (Microsoft)</option>
+          <option value="gemma3">Gemma 3 (Google)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ollama-URL</label>
+        <input id="url-ollama" type="text" value="http://localhost:11434" autocomplete="off" />
+      </div>
+    </div>
+
+    <button class="primary" id="api-key-btn">Assistent starten</button>
+    <p class="api-error" id="api-error">Bitte einen gültigen API-Schlüssel eingeben.</p>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="header-emblem">🏛️</div>
+  <div>
+    <div class="header-title">Einwohnermeldeamt</div>
+    <div class="header-sub">Digitaler Bürgerassistent</div>
+  </div>
+  <div class="header-right">
+    <div class="provider-pill" id="provider-pill"></div>
+    <div class="header-badge" id="header-badge" title="Anbieter wechseln" onclick="showOverlay()">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Konfigurieren…</span>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main>
+  <div id="chips">
+    <button class="chip" data-q="Wie melde ich mich an?">📋 Anmeldung</button>
+    <button class="chip" data-q="Was brauche ich zur Ummeldung?">📦 Ummeldung</button>
+    <button class="chip" data-q="Wie funktioniert die Abmeldung ins Ausland?">✈️ Abmeldung</button>
+    <button class="chip" data-q="Welche Dokumente brauche ich für die Anmeldung?">📄 Unterlagen</button>
+    <button class="chip" data-q="Wie kann ich einen Termin vereinbaren?">📅 Terminvereinbarung</button>
+    <button class="chip" data-q="Welche Gebühren fallen an?">💶 Gebühren</button>
+    <button class="chip" data-q="Wie beantrage ich eine Meldebescheinigung?">📃 Meldebescheinigung</button>
+    <button class="chip" data-q="Wie beantrage ich einen neuen Personalausweis?">🪪 Personalausweis</button>
+  </div>
+
+  <div id="chat"></div>
+
+  <div id="input-bar">
+    <textarea id="user-input" rows="1"
+      placeholder="Ihre Frage an das Einwohnermeldeamt …"></textarea>
+    <button id="send-btn" title="Senden" disabled>&#9658;</button>
+  </div>
+
+  <div id="info-bar">
+    Dieser Assistent ersetzt keine Rechtsberatung. Für verbindliche Auskünfte wenden Sie sich
+    an Ihr zuständiges Einwohnermeldeamt.
+  </div>
+</main>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let provider = 'anthropic';
+  let apiKey   = '';
+  let model    = '';
+  let ollamaUrl = 'http://localhost:11434';
+  let busy     = false;
+  const history = [];
+
+  const PROVIDER_LABELS = {
+    anthropic: 'Anthropic',
+    openai:    'OpenAI',
+    mistral:   'Mistral',
+    ollama:    'Ollama (lokal)',
+  };
+
+  const SYSTEM_PROMPT = `Du bist ein freundlicher, kompetenter digitaler Assistent des Einwohnermeldeamtes.
+Du hilfst Bürgerinnen und Bürgern bei allen Fragen rund um das Meldewesen in Deutschland.
+
+Deine Expertise umfasst:
+- **Anmeldung**: Erstanmeldung nach Zuzug (Frist: 14 Tage, in manchen Ländern bis zu 2 Wochen nach Einzug).
+  Benötigte Unterlagen: Personalausweis/Reisepass, Wohnungsgeberbestätigung (§ 19 BMG), ggf. Einzugsermächtigung.
+- **Ummeldung**: Adressänderung innerhalb Deutschlands. Gleiche Frist, gleiche Unterlagen wie Anmeldung.
+- **Abmeldung**: Ins Ausland oder nach Aufgabe einer Wohnung ohne neue (Nebenwohnung).
+  Frühestens 1 Woche vorher, spätestens 2 Wochen nach Auszug. Nur Ausweis nötig.
+- **Meldebescheinigung**: Kosten ca. 5–12 € je nach Gemeinde; Antrag persönlich oder online.
+- **Erweiterte Meldebescheinigung**: Enthält weitere Daten (z. B. Familienstand), nötig z. B. für Eheschließung.
+- **Personalausweis & Reisepass**: Beantragung, Verlängerung, Kosten (Ausweis ab 18 J.: 37 €, Reisepass: 70 €, Express: +32 €).
+- **Führungszeugnis**: Beantragung beim Einwohnermeldeamt oder online via BundID; Kosten 13 €.
+- **Ehenamensänderung / Namensänderung**: Ummeldung nach Heirat oder Namensänderung.
+- **Nebenwohnsitz**: An- und Abmeldung von Zweitwohnungen; ggf. Zweitwohnungsteuer beachten.
+- **Familienanmeldung**: Kinder automatisch anmelden, Regelungen bei gemeinsamer/getrennter Anschrift.
+- **EU-Bürger & Drittstaatsangehörige**: Besonderheiten, Fristen, Aufenthaltstitel.
+- **Online-Dienste**: Hinweis auf Onlinezugangsgesetz (OZG), Bürgerkonto, BundID.
+- **Datenschutz & Auskunftssperre**: Eintragung nach § 51 BMG bei Gefährdungslage.
+- **Bundesmeldegesetz (BMG)**: Du kennst die relevanten Paragraphen.
+
+Antworte stets auf Deutsch, klar und bürgernah. Strukturiere komplexe Antworten mit Aufzählungspunkten oder nummerierten Listen.
+Wenn du dir bei spezifischen lokalen Regelungen (z. B. Öffnungszeiten eines bestimmten Amtes) unsicher bist, weise den Nutzer darauf hin, dass diese Angaben lokal variieren und er die offizielle Website seiner Gemeinde prüfen sollte.
+Halte Antworten prägnant – nicht zu lang, aber vollständig.`;
+
+  // ── DOM refs ───────────────────────────────────────────────────────────────
+  const overlay     = document.getElementById('api-overlay');
+  const apiBtn      = document.getElementById('api-key-btn');
+  const apiError    = document.getElementById('api-error');
+  const statusDot   = document.getElementById('status-dot');
+  const statusText  = document.getElementById('status-text');
+  const providerPill = document.getElementById('provider-pill');
+  const chatEl      = document.getElementById('chat');
+  const inputEl     = document.getElementById('user-input');
+  const sendBtn     = document.getElementById('send-btn');
+
+  // ── Provider tabs ──────────────────────────────────────────────────────────
+  document.querySelectorAll('.provider-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.provider-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.provider-fields').forEach(f => f.classList.add('hidden'));
+      tab.classList.add('active');
+      provider = tab.dataset.provider;
+      document.getElementById('fields-' + provider).classList.remove('hidden');
+      apiError.style.display = 'none';
+    });
+  });
+
+  // ── Confirm / start ────────────────────────────────────────────────────────
+  apiBtn.addEventListener('click', confirmSetup);
+
+  // Allow Enter in key fields
+  ['key-anthropic','key-openai','key-mistral'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') confirmSetup(); });
+  });
+
+  function confirmSetup() {
+    apiError.style.display = 'none';
+
+    if (provider === 'ollama') {
+      ollamaUrl = (document.getElementById('url-ollama').value || 'http://localhost:11434').replace(/\/$/, '');
+      model     = document.getElementById('model-ollama').value;
+      apiKey    = '__ollama__';
+    } else {
+      const keyEl = document.getElementById('key-' + provider);
+      const val   = keyEl ? keyEl.value.trim() : '';
+      if (provider === 'anthropic' && !val.startsWith('sk-')) {
+        apiError.textContent = 'Anthropic-Schlüssel muss mit sk- beginnen.';
+        apiError.style.display = 'block';
+        return;
+      }
+      if ((provider === 'openai' || provider === 'mistral') && val.length < 8) {
+        apiError.textContent = 'Bitte einen gültigen API-Schlüssel eingeben.';
+        apiError.style.display = 'block';
+        return;
+      }
+      apiKey = val;
+      model  = document.getElementById('model-' + provider).value;
+    }
+
+    overlay.style.display = 'none';
+    providerPill.textContent = PROVIDER_LABELS[provider];
+    setStatus(true);
+    sendBtn.disabled = false;
+    history.length = 0;
+    chatEl.innerHTML = '';
+
+    addBotMessage(
+      'Willkommen beim digitalen Bürgerassistenten des Einwohnermeldeamtes! 👋\n\n' +
+      'Ich helfe Ihnen bei Fragen zu:\n' +
+      '- Anmeldung, Ummeldung und Abmeldung\n' +
+      '- Personalausweis, Reisepass und Meldebescheinigung\n' +
+      '- Führungszeugnis und weiteren Behördenangelegenheiten\n\n' +
+      'Wie kann ich Ihnen helfen?'
+    );
+    inputEl.focus();
+  }
+
+  function showOverlay() {
+    overlay.style.display = 'flex';
+    sendBtn.disabled = true;
+  }
+
+  // ── Status indicator ───────────────────────────────────────────────────────
+  function setStatus(online) {
+    statusDot.className  = 'status-dot' + (online ? '' : ' offline');
+    statusText.textContent = online ? 'Assistent aktiv' : 'Offline';
+  }
+
+  // ── Auto-resize textarea ───────────────────────────────────────────────────
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+  });
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  // ── Quick chips ───────────────────────────────────────────────────────────
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (busy) return;
+      inputEl.value = chip.dataset.q;
+      sendMessage();
+    });
+  });
+  sendBtn.addEventListener('click', sendMessage);
+
+  // ── Send message ───────────────────────────────────────────────────────────
+  async function sendMessage() {
+    if (busy || !apiKey) return;
+    const text = inputEl.value.trim();
+    if (!text) return;
+
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    busy = true;
+    sendBtn.disabled = true;
+
+    addUserMessage(text);
+    history.push({ role: 'user', content: text });
+
+    const typingId = addTypingIndicator();
+
+    try {
+      let reply;
+      if (provider === 'anthropic')  reply = await callAnthropic(history);
+      else if (provider === 'openai') reply = await callOpenAI(history);
+      else if (provider === 'mistral') reply = await callMistral(history);
+      else                            reply = await callOllama(history);
+
+      removeTypingIndicator(typingId);
+      addBotMessage(reply);
+      history.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      removeTypingIndicator(typingId);
+      const raw = err.message || 'Unbekannter Fehler';
+      let msg = 'Es ist ein Fehler aufgetreten: ' + raw;
+      if (raw.includes('401')) msg = 'Ungültiger API-Schlüssel. Bitte neu konfigurieren (Status-Badge klicken).';
+      if (raw.includes('Failed to fetch') && provider === 'ollama')
+        msg = 'Ollama ist nicht erreichbar. Bitte stellen Sie sicher, dass Ollama unter ' + ollamaUrl + ' läuft.';
+      addBotMessage('⚠️ ' + msg);
+      setStatus(false);
+    } finally {
+      busy = false;
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  // ── Anthropic API (SSE) ────────────────────────────────────────────────────
+  async function callAnthropic(messages) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({ model, max_tokens: 2048, system: SYSTEM_PROMPT, stream: true, messages }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(`${res.status}: ${e?.error?.message || res.statusText}`);
+    }
+    return streamSSE(res, ev => {
+      if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta')
+        return ev.delta.text;
+    });
+  }
+
+  // ── OpenAI API (SSE) ───────────────────────────────────────────────────────
+  async function callOpenAI(messages) {
+    const msgs = [{ role: 'system', content: SYSTEM_PROMPT }, ...messages];
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+      },
+      body: JSON.stringify({ model, max_tokens: 2048, stream: true, messages: msgs }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(`${res.status}: ${e?.error?.message || res.statusText}`);
+    }
+    return streamSSE(res, ev => ev.choices?.[0]?.delta?.content || '');
+  }
+
+  // ── Mistral API (SSE, OpenAI-compatible) ───────────────────────────────────
+  async function callMistral(messages) {
+    const msgs = [{ role: 'system', content: SYSTEM_PROMPT }, ...messages];
+    const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+      },
+      body: JSON.stringify({ model, max_tokens: 2048, stream: true, messages: msgs }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(`${res.status}: ${e?.error?.message || res.statusText}`);
+    }
+    return streamSSE(res, ev => ev.choices?.[0]?.delta?.content || '');
+  }
+
+  // ── Ollama API (NDJSON stream) ─────────────────────────────────────────────
+  async function callOllama(messages) {
+    const msgs = [{ role: 'system', content: SYSTEM_PROMPT }, ...messages];
+    const res = await fetch(ollamaUrl + '/api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model, stream: true, messages: msgs }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(`${res.status}: ${e?.error || res.statusText}`);
+    }
+
+    // Ollama streams newline-delimited JSON (not SSE)
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText  = '';
+    let streamBubble = null;
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const ev = JSON.parse(line);
+          const token = ev.message?.content || '';
+          if (token) {
+            fullText += token;
+            if (!streamBubble) streamBubble = createStreamBubble();
+            streamBubble.innerHTML = formatMessage(fullText) + '<span class="cursor">▌</span>';
+            scrollChat();
+          }
+        } catch { /* skip */ }
+      }
+    }
+    if (streamBubble) streamBubble.innerHTML = formatMessage(fullText);
+    return fullText;
+  }
+
+  // ── Generic SSE stream helper ──────────────────────────────────────────────
+  async function streamSSE(response, extractToken) {
+    const reader  = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText  = '';
+    let streamBubble = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const token = extractToken(JSON.parse(data));
+          if (token) {
+            fullText += token;
+            if (!streamBubble) streamBubble = createStreamBubble();
+            streamBubble.innerHTML = formatMessage(fullText) + '<span class="cursor">▌</span>';
+            scrollChat();
+          }
+        } catch { /* skip malformed lines */ }
+      }
+    }
+    if (streamBubble) streamBubble.innerHTML = formatMessage(fullText);
+    return fullText;
+  }
+
+  // ── Render helpers ─────────────────────────────────────────────────────────
+  function addBotMessage(text) {
+    const { msg } = createMsgEl('bot');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = formatMessage(text);
+    msg.appendChild(bubble);
+    chatEl.appendChild(msg);
+    scrollChat();
+    return bubble;
+  }
+
+  function addUserMessage(text) {
+    const { msg } = createMsgEl('user');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    msg.appendChild(bubble);
+    chatEl.appendChild(msg);
+    scrollChat();
+  }
+
+  function createStreamBubble() {
+    const { msg } = createMsgEl('bot');
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    msg.appendChild(bubble);
+    chatEl.appendChild(msg);
+    scrollChat();
+    return bubble;
+  }
+
+  function createMsgEl(role) {
+    const msg = document.createElement('div');
+    msg.className = 'msg ' + role;
+    const av = document.createElement('div');
+    av.className = 'avatar';
+    av.textContent = role === 'bot' ? '🏛️' : '👤';
+    msg.appendChild(av);
+    return { msg };
+  }
+
+  function addTypingIndicator() {
+    const { msg } = createMsgEl('bot');
+    msg.id = 'typing-' + Date.now();
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble typing-dots';
+    bubble.innerHTML = '<span></span><span></span><span></span>';
+    msg.appendChild(bubble);
+    chatEl.appendChild(msg);
+    scrollChat();
+    return msg.id;
+  }
+
+  function removeTypingIndicator(id) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function scrollChat() { chatEl.scrollTop = chatEl.scrollHeight; }
+
+  // ── Markdown-lite formatter ────────────────────────────────────────────────
+  function formatMessage(text) {
+    let t = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    const lines = t.split('\n');
+    let html = '';
+    let inUl = false;
+    let inOl = false;
+
+    for (const line of lines) {
+      const ulMatch = line.match(/^[-•]\s+(.*)/);
+      const olMatch = line.match(/^\d+\.\s+(.*)/);
+
+      if (ulMatch) {
+        if (!inUl) { html += '<ul>'; inUl = true; }
+        html += `<li>${ulMatch[1]}</li>`;
+      } else if (olMatch) {
+        if (!inOl) { html += '<ol>'; inOl = true; }
+        html += `<li>${olMatch[1]}</li>`;
+      } else {
+        if (inUl) { html += '</ul>'; inUl = false; }
+        if (inOl) { html += '</ol>'; inOl = false; }
+        html += line.trim() === '' ? '<br>' : `<p>${line}</p>`;
+      }
+    }
+    if (inUl) html += '</ul>';
+    if (inOl) html += '</ol>';
+
+    html = html.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+    html = html.replace(/(<br>){3,}/g, '<br><br>');
+    return html;
+  }
+</script>
+</body>
+</html>
